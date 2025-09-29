@@ -1,0 +1,390 @@
+{
+	"compiler": {
+		"version": "0.8.30+commit.73712a01"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_bankCap",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "payable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [],
+				"name": "Bank_AccountAlreadyExists",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "Bank_AccountNotExists",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "Bank_DifferentOwner",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "Bank_ExceedBankCap",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "Bank_ExceedWithdrawAmount",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "Bank_InsuficientFunds",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "Bank_NoReentrancy",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "Bank_TransferError",
+				"type": "error"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "origin",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "valor",
+						"type": "uint256"
+					}
+				],
+				"name": "Bank_Deposit",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "destination",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "valor",
+						"type": "uint256"
+					}
+				],
+				"name": "Bank_Withdraw",
+				"type": "event"
+			},
+			{
+				"stateMutability": "payable",
+				"type": "fallback"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_email",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "_name",
+						"type": "string"
+					}
+				],
+				"name": "createAccount",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "depositIntoMyAccount",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getAccountBalance",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getTotalBankBalance",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "i_bankCap",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "i_contractOwner",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "i_maxWithdrawAmount",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "s_depositCounter",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "s_withdrawCounter",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_amount",
+						"type": "uint256"
+					}
+				],
+				"name": "withdraw",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"stateMutability": "payable",
+				"type": "receive"
+			}
+		],
+		"devdoc": {
+			"author": "maugust",
+			"custom:contact": "https://github.com/maugust17",
+			"details": "No usar en producción",
+			"kind": "dev",
+			"methods": {
+				"constructor": {
+					"details": "esta función se encarga de inicializar el banco y definir el dueño del contrato",
+					"params": {
+						"_bankCap": "es el monto máximo que puede tener el banco"
+					}
+				},
+				"createAccount(string,string)": {
+					"details": "al crear la cuenta se puede recibir un monto para guardar",
+					"params": {
+						"_email": "dirección de mail del dueño de la cuenta",
+						"_name": "nombre del dueño de la cuenta"
+					}
+				},
+				"depositIntoMyAccount()": {
+					"details": "esta función emite un evento ante un deposito correcto, sino revierte el esatod"
+				},
+				"getAccountBalance()": {
+					"details": "solo el dueño de la cuenta puede obtener el saldo de su cuenta"
+				},
+				"getTotalBankBalance()": {
+					"details": "solo el dueño del contrato puede obtener el saldo total"
+				},
+				"withdraw(uint256)": {
+					"details": "en caso exitoso se emite un evento, en caso de error se revierte el estado",
+					"params": {
+						"_amount": "cantidad de ether a retirar de la cuenta"
+					}
+				}
+			},
+			"title": "KipuBank",
+			"version": 1
+		},
+		"userdoc": {
+			"errors": {
+				"Bank_AccountAlreadyExists()": [
+					{
+						"notice": "error emitido cuando se intenta crear una cuenta duplicada"
+					}
+				],
+				"Bank_AccountNotExists()": [
+					{
+						"notice": "error emitido cuando alguien no identificado intenta operar sobre una cuenta"
+					}
+				],
+				"Bank_DifferentOwner()": [
+					{
+						"notice": "error emitido cuando alguien diferente al dueño intenta operar el banco"
+					}
+				],
+				"Bank_ExceedBankCap()": [
+					{
+						"notice": "error emitido cuando se intenta depositar más del límite total permitido en el banco"
+					}
+				],
+				"Bank_ExceedWithdrawAmount()": [
+					{
+						"notice": "error emitido cuando alguien se intenta extraer más del límite de retiro"
+					}
+				],
+				"Bank_InsuficientFunds()": [
+					{
+						"notice": "error emitido cuando no se tiene saldo suficiente en la cuenta"
+					}
+				],
+				"Bank_NoReentrancy()": [
+					{
+						"notice": "error emitido cuando alguien intenta hacer un ataque de reentrada"
+					}
+				],
+				"Bank_TransferError()": [
+					{
+						"notice": "error emitido cuando da un error al retirar dinero"
+					}
+				]
+			},
+			"events": {
+				"Bank_Deposit(address,uint256)": {
+					"notice": "evento emitido cuando se completa un deposito"
+				},
+				"Bank_Withdraw(address,uint256)": {
+					"notice": "evento emitido cuando se completa un retiro"
+				}
+			},
+			"kind": "user",
+			"methods": {
+				"constructor": {
+					"notice": "esta función se llama cuando se crea el contrato"
+				},
+				"createAccount(string,string)": {
+					"notice": "función para crear una nueva cuenta dentro del banco"
+				},
+				"depositIntoMyAccount()": {
+					"notice": "función que permite depositar ether para una cuenta existente"
+				},
+				"getAccountBalance()": {
+					"notice": "función para obtener el balance de una cuenta"
+				},
+				"getTotalBankBalance()": {
+					"notice": "función para obtener el balance del banco"
+				},
+				"i_bankCap()": {
+					"notice": "variable inmutable para almacenar el monto máximo que puede alamcenar el contrato"
+				},
+				"i_contractOwner()": {
+					"notice": "variable inmutable para almacenar el dueño del contrato"
+				},
+				"i_maxWithdrawAmount()": {
+					"notice": "variable inmutable para almacenar el monto máximo de cada retiro"
+				},
+				"s_depositCounter()": {
+					"notice": "contador de cantidad de depositos realizados"
+				},
+				"s_withdrawCounter()": {
+					"notice": "contador de cantidad de retiros realizados"
+				},
+				"withdraw(uint256)": {
+					"notice": "función para saldo de una cuenta ya creada anteriormente"
+				}
+			},
+			"notice": "TP2 de ETHKipu",
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/1_Kipubank.sol": "Bank"
+		},
+		"evmVersion": "prague",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/1_Kipubank.sol": {
+			"keccak256": "0xf7d8421f6df5a5b1243855835a03763fb3177771c6e43c422eca1e6f83c80db1",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://5c0dc2ccbf12cff804da0c6dac1792f1ff313219f5e8ee9a41207336f5387ce5",
+				"dweb:/ipfs/Qmc9wExAstzmKGADVXdzbxUq4jXCkbNpqEpJuCZGbkkiVK"
+			]
+		}
+	},
+	"version": 1
+}
