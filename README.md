@@ -33,7 +33,7 @@ KipuBank es un smart contract bancario simple desarrollado en Solidity que permi
 ### 1. Despliegue
 ```solidity
 // En Remix IDE, compilar y desplegar con un valor de _bankCap
-constructor(uint256 _bankCap)
+constructor(uint256 _bankCap, uint256 _maxWithdrawAmount)
 ```
 
 ### 2. Crear una Cuenta
@@ -121,7 +121,7 @@ El contrato mantiene contadores públicos de:
 
 ## Flujo de Uso Típico
 
-1. **Desplegar el contrato** especificando la capacidad máxima
+1. **Desplegar el contrato** especificando la capacidad máxima y el límite máximo para retiro
 2. **Crear cuenta personal** con `createAccount()`
 3. **Depositar ETH** usando `depositIntoMyAccount()` con value
 4. **Verificar balance** con `getAccountBalance()`
