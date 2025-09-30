@@ -73,8 +73,9 @@ contract Bank {
     * @dev esta función se encarga de inicializar el banco y definir el dueño del contrato
     * @param _bankCap es el monto máximo que puede tener el banco
     */
-    constructor(uint256 _bankCap) payable {
+    constructor(uint256 _bankCap, uint256 _maxWithdrawAmount) /*payable*/ {
         i_bankCap = _bankCap;
+        i_maxWithdrawAmount = _maxWithdrawAmount;
         i_contractOwner = msg.sender;
     }
     

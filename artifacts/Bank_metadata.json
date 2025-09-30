@@ -11,9 +11,14 @@
 						"internalType": "uint256",
 						"name": "_bankCap",
 						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_maxWithdrawAmount",
+						"type": "uint256"
 					}
 				],
-				"stateMutability": "payable",
+				"stateMutability": "nonpayable",
 				"type": "constructor"
 			},
 			{
@@ -378,11 +383,11 @@
 	},
 	"sources": {
 		"contracts/1_Kipubank.sol": {
-			"keccak256": "0xf7d8421f6df5a5b1243855835a03763fb3177771c6e43c422eca1e6f83c80db1",
+			"keccak256": "0x365db13f5ee8eed976f4095f7068efc403bfcf8542c43c572997f604ba83d0a3",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://5c0dc2ccbf12cff804da0c6dac1792f1ff313219f5e8ee9a41207336f5387ce5",
-				"dweb:/ipfs/Qmc9wExAstzmKGADVXdzbxUq4jXCkbNpqEpJuCZGbkkiVK"
+				"bzz-raw://479fffb959c9bf0283b032df623799a6840457d5dc7008b887bdf45fa18ed672",
+				"dweb:/ipfs/QmavKk8uev1ZzAXG513Uce7XZUwLLgrcX7rwFye3Cg7fkh"
 			]
 		}
 	},
