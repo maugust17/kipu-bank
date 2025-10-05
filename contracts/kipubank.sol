@@ -8,7 +8,7 @@ pragma solidity ^0.8.30;
  * @notice TP2 de ETHKipu
  * @custom:contact https://github.com/maugust17
  */
-contract Bank {
+contract KipuBank {
     /*///////////////////////
            VARIABLES
     ///////////////////////*/
@@ -150,10 +150,6 @@ contract Bank {
         i_contractOwner = msg.sender;
     }
     
-    // funciones para transferir ether directamente al contrato
-    // receive() external payable {}
-    // fallback() external payable {}  
-
     /**
 		*@notice función para obtener el balance del banco
 		*@dev solo el dueño del contrato puede obtener el saldo total
