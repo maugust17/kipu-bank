@@ -360,7 +360,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"contracts/kipubank.sol": "Bank"
+			"contracts/kipubank.sol": "KipuBank"
 		},
 		"evmVersion": "prague",
 		"libraries": {},
@@ -375,11 +375,11 @@
 	},
 	"sources": {
 		"contracts/kipubank.sol": {
-			"keccak256": "0x8be7bc5a7b784b3644f72dfcb819b3b756552e32ba94c1acb7d38526b48901a0",
+			"keccak256": "0x0c4188de00cdf95b2fa61630a1b74f8a395c1d0213f35a60b20c3211a42e6474",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://5b09a066d402db58bd1bc8d7bbc919ef77bd628c689ebb5a6c6d374e87824ff2",
-				"dweb:/ipfs/QmaLvjheCUamKf6E9UZfJ4Th1cXe9rigeaWS7LVknsMPUZ"
+				"bzz-raw://b4d6ac21895854f017272f933e01b305edf35d71a4d6b4600984062c5bf0491e",
+				"dweb:/ipfs/QmfHM5U91Q9o6iXrFqeX5P63HztRgGALG3oPZyTXJfigAR"
 			]
 		}
 	},
