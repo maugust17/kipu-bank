@@ -8,10 +8,18 @@ pragma solidity ^0.8.30;
  * @notice TP2 de ETHKipu
  * @custom:contact https://github.com/maugust17
  */
-contract KipuBank {
+contract Bank {
     /*///////////////////////
            VARIABLES
     ///////////////////////*/
+    /**
+     * @notice Estructura que representa una cuenta bancaria
+     * @dev Almacena la información de cada usuario del banco
+     * @param balance Saldo actual de la cuenta
+     * @param name Nombre del titular de la cuenta
+     * @param email Correo electrónico del titular
+     * @param exists Flag que indica si la cuenta ha sido creada
+     */
     struct Account {
         uint256 balance;
         string name;
@@ -26,7 +34,7 @@ contract KipuBank {
     address public immutable i_contractOwner;
     ///@notice variable inmutable para almacenar el monto máximo de cada retiro
     uint256 public immutable i_maxWithdrawAmount;
-    ///@notice variable inmutable para almacenar el monto máximo que puede alamcenar el contrato
+    ///@notice variable inmutable para almacenar el monto máximo que puede almacenar el contrato
     uint256 public immutable i_bankCap;
     ///@notice contador de cantidad de depositos realizados
     uint256 public s_depositCounter;
@@ -36,9 +44,17 @@ contract KipuBank {
     /*///////////////////////
            EVENTS
     ///////////////////////*/
-    ///@notice evento emitido cuando se completa un deposito
+    /**
+     * @notice Evento emitido cuando se completa un depósito
+     * @param origin Dirección que realizó el depósito
+     * @param valor Cantidad depositada en wei
+     */
 	event KipuBank_Deposit(address origin, uint256 valor);
-	///@notice evento emitido cuando se completa un retiro
+	/**
+     * @notice Evento emitido cuando se completa un retiro
+     * @param destination Dirección que recibe el retiro
+     * @param valor Cantidad retirada en wei
+     */
 	event KipuBank_Withdraw(address destination, uint256 valor);
 
     /*///////////////////////
@@ -53,7 +69,7 @@ contract KipuBank {
     ///@notice error emitido cuando alguien no identificado intenta operar sobre una cuenta
     error KipuBank_AccountNotExists();
     ///@notice error emitido cuando no se tiene saldo suficiente en la cuenta
-    error KipuBank_InsuficientFunds(); 
+    error KipuBank_InsufficientFunds(); 
     ///@notice error emitido cuando alguien se intenta extraer más del límite de retiro
     error KipuBank_ExceedWithdrawAmount();
     ///@notice error emitido cuando se intenta depositar más del límite total permitido en el banco
@@ -105,7 +121,7 @@ contract KipuBank {
 	*/
     modifier canWithdraw(uint256 _amount) {
         uint256 userBalance = s_vault[msg.sender].balance;
-        if(_amount > userBalance) revert KipuBank_InsuficientFunds();
+        if(_amount > userBalance) revert KipuBank_InsufficientFunds();
         if(_amount > i_maxWithdrawAmount) revert KipuBank_ExceedWithdrawAmount();
         _;
     }
@@ -126,6 +142,7 @@ contract KipuBank {
     * @notice esta función se llama cuando se crea el contrato
     * @dev esta función se encarga de inicializar el banco y definir el dueño del contrato
     * @param _bankCap es el monto máximo que puede tener el banco
+    * @param _maxWithdrawAmount es el monto máximo que se puede retirar en una transacción
     */
     constructor(uint256 _bankCap, uint256 _maxWithdrawAmount) {
         i_bankCap = _bankCap;
@@ -140,6 +157,7 @@ contract KipuBank {
     /**
 		*@notice función para obtener el balance del banco
 		*@dev solo el dueño del contrato puede obtener el saldo total
+		*@return uint256 el balance total del banco en wei
 	*/
     function getTotalBankBalance() public view onlyBankOwner returns (uint256) {
         return address(this).balance;
@@ -148,13 +166,18 @@ contract KipuBank {
     /**
 		*@notice función para obtener el balance de una cuenta
 		*@dev solo el dueño de la cuenta puede obtener el saldo de su cuenta
+		*@return uint256 el balance de la cuenta del llamador en wei
 	*/
     function getAccountBalance() public view onlyAccountOwners returns (uint256)
     {
         return s_vault[msg.sender].balance;
     }
 
-    function _depositEvent(address _userAddress) private exceedBankCap {
+    /**
+     * @notice Función interna para registrar eventos de depósito
+     * @dev Incrementa el contador de depósitos y emite el evento correspondiente
+     */
+    function _depositEvent() private exceedBankCap {
         s_depositCounter++;
         emit KipuBank_Deposit(msg.sender, msg.value);
     }
@@ -173,9 +196,7 @@ contract KipuBank {
             name: _name
         });
 
-        _depositEvent(msg.sender);
-        // s_depositCounter++;
-        // emit KipuBank_Deposit(msg.sender, msg.value);
+        _depositEvent();
     }
 
     /**
@@ -185,10 +206,7 @@ contract KipuBank {
 	*/
     function deposit(address _userAddress) internal exceedBankCap {
         s_vault[_userAddress].balance += msg.value;
-
-        _depositEvent(msg.sender);
-        // s_depositCounter++;
-        // emit KipuBank_Deposit(msg.sender, msg.value);
+        _depositEvent();
     }
 
     /**

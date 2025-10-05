@@ -48,7 +48,7 @@
 			},
 			{
 				"inputs": [],
-				"name": "KipuBank_InsuficientFunds",
+				"name": "KipuBank_InsufficientFunds",
 				"type": "error"
 			},
 			{
@@ -233,12 +233,27 @@
 			"author": "maugust",
 			"custom:contact": "https://github.com/maugust17",
 			"details": "No usar en producción",
+			"events": {
+				"KipuBank_Deposit(address,uint256)": {
+					"params": {
+						"origin": "Dirección que realizó el depósito",
+						"valor": "Cantidad depositada en wei"
+					}
+				},
+				"KipuBank_Withdraw(address,uint256)": {
+					"params": {
+						"destination": "Dirección que recibe el retiro",
+						"valor": "Cantidad retirada en wei"
+					}
+				}
+			},
 			"kind": "dev",
 			"methods": {
 				"constructor": {
 					"details": "esta función se encarga de inicializar el banco y definir el dueño del contrato",
 					"params": {
-						"_bankCap": "es el monto máximo que puede tener el banco"
+						"_bankCap": "es el monto máximo que puede tener el banco",
+						"_maxWithdrawAmount": "es el monto máximo que se puede retirar en una transacción"
 					}
 				},
 				"createAccount(string,string)": {
@@ -252,10 +267,16 @@
 					"details": "esta función emite un evento ante un deposito correcto, sino revierte el esatod"
 				},
 				"getAccountBalance()": {
-					"details": "solo el dueño de la cuenta puede obtener el saldo de su cuenta"
+					"details": "solo el dueño de la cuenta puede obtener el saldo de su cuenta",
+					"returns": {
+						"_0": "uint256 el balance de la cuenta del llamador en wei"
+					}
 				},
 				"getTotalBankBalance()": {
-					"details": "solo el dueño del contrato puede obtener el saldo total"
+					"details": "solo el dueño del contrato puede obtener el saldo total",
+					"returns": {
+						"_0": "uint256 el balance total del banco en wei"
+					}
 				},
 				"withdraw(uint256)": {
 					"details": "en caso exitoso se emite un evento, en caso de error se revierte el estado",
@@ -294,7 +315,7 @@
 						"notice": "error emitido cuando alguien se intenta extraer más del límite de retiro"
 					}
 				],
-				"KipuBank_InsuficientFunds()": [
+				"KipuBank_InsufficientFunds()": [
 					{
 						"notice": "error emitido cuando no se tiene saldo suficiente en la cuenta"
 					}
@@ -312,10 +333,10 @@
 			},
 			"events": {
 				"KipuBank_Deposit(address,uint256)": {
-					"notice": "evento emitido cuando se completa un deposito"
+					"notice": "Evento emitido cuando se completa un depósito"
 				},
 				"KipuBank_Withdraw(address,uint256)": {
-					"notice": "evento emitido cuando se completa un retiro"
+					"notice": "Evento emitido cuando se completa un retiro"
 				}
 			},
 			"kind": "user",
@@ -336,7 +357,7 @@
 					"notice": "función para obtener el balance del banco"
 				},
 				"i_bankCap()": {
-					"notice": "variable inmutable para almacenar el monto máximo que puede alamcenar el contrato"
+					"notice": "variable inmutable para almacenar el monto máximo que puede almacenar el contrato"
 				},
 				"i_contractOwner()": {
 					"notice": "variable inmutable para almacenar el dueño del contrato"
@@ -375,11 +396,11 @@
 	},
 	"sources": {
 		"contracts/kipubank.sol": {
-			"keccak256": "0x8be7bc5a7b784b3644f72dfcb819b3b756552e32ba94c1acb7d38526b48901a0",
+			"keccak256": "0x320e8ea0a0cb89dbaf2f790d1981f2a1a0fd9c3d4c7fb7c7f4e33d3ed5dc6eaf",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://5b09a066d402db58bd1bc8d7bbc919ef77bd628c689ebb5a6c6d374e87824ff2",
-				"dweb:/ipfs/QmaLvjheCUamKf6E9UZfJ4Th1cXe9rigeaWS7LVknsMPUZ"
+				"bzz-raw://0a3343a6b17118269ac238f04106ed90651e077e75e1aaba66a6fdcd6a6acb6a",
+				"dweb:/ipfs/QmQrnZGNoXE8dMAgSnZPc67ww3UvT6z7uERsAMNdMUQJCi"
 			]
 		}
 	},
