@@ -389,8 +389,58 @@
 		"devdoc": {
 			"author": "maugust",
 			"custom:contact": "https://github.com/maugust17",
-			"details": "No usar en producción",
+			"details": "No usar en producción - TP3 de ETHKipuUtiliza OpenZeppelin para seguridad y Chainlink para conversión de precios",
 			"errors": {
+				"KipuBank_AccountAlreadyExists()": [
+					{
+						"details": "Se lanza en el modificador onlyNotExistsAccounts si exists es true"
+					}
+				],
+				"KipuBank_AccountNotExists()": [
+					{
+						"details": "Se lanza en el modificador onlyAccountOwners si exists es false"
+					}
+				],
+				"KipuBank_DifferentOwner()": [
+					{
+						"details": "Se lanza cuando una dirección no autorizada intenta acceder a funciones de administrador      En esta versión, la verificación se maneja mediante el modificador onlyOwner de OpenZeppelin"
+					}
+				],
+				"KipuBank_ExceedBankCap()": [
+					{
+						"details": "Se lanza en los modificadores exceedBankCapEther o exceedBankCapUSDC      si el balance resultante supera i_bankCap"
+					}
+				],
+				"KipuBank_ExceedWithdrawAmount()": [
+					{
+						"details": "Se lanza en los modificadores canWithdrawEther o canWithdrawUSDC      si el monto excede i_maxWithdrawAmount"
+					}
+				],
+				"KipuBank_InsufficientFunds()": [
+					{
+						"details": "Se lanza en los modificadores canWithdrawEther o canWithdrawUSDC      si el monto solicitado excede el balance disponible"
+					}
+				],
+				"KipuBank_NoReentrancy()": [
+					{
+						"details": "Se lanza en el modificador noRentrancy si s_locked ya está en true"
+					}
+				],
+				"KipuBank_OracleCompromised()": [
+					{
+						"details": "Se lanza en chainlinkFeed() cuando el precio retornado es cero o negativo      Indica un problema con el oráculo o configuración incorrecta"
+					}
+				],
+				"KipuBank_StalePrice()": [
+					{
+						"details": "Se lanza en chainlinkFeed() cuando la última actualización excede ORACLE_HEARTBEAT      Previene el uso de precios obsoletos que podrían ser manipulados"
+					}
+				],
+				"KipuBank_TransferError()": [
+					{
+						"details": "Se lanza en withdrawEther si la llamada .call() retorna false"
+					}
+				],
 				"OwnableInvalidOwner(address)": [
 					{
 						"details": "The owner is not a valid owner account. (eg. `address(0)`)"
@@ -408,57 +458,71 @@
 				]
 			},
 			"events": {
+				"KipuBank_ChainlinkFeedUpdated(address)": {
+					"details": "Permite rastrear cambios en la configuración del oráculo",
+					"params": {
+						"feed": "Nueva dirección del agregador de Chainlink"
+					}
+				},
 				"KipuBank_Deposit(address,uint256)": {
+					"details": "Se emite tanto en depositEther como en depositUSDC",
 					"params": {
 						"origin": "Dirección que realizó el depósito",
-						"valor": "Cantidad depositada en wei"
+						"valor": "Cantidad depositada (wei para ETH, unidades base para USDC)"
 					}
 				},
 				"KipuBank_Withdraw(address,uint256)": {
+					"details": "Se emite tanto en withdrawEther como en withdrawUSDC",
 					"params": {
 						"destination": "Dirección que recibe el retiro",
-						"valor": "Cantidad retirada en wei"
+						"valor": "Cantidad retirada (wei para ETH, unidades base para USDC)"
 					}
 				}
 			},
 			"kind": "dev",
 			"methods": {
 				"constructor": {
-					"details": "esta función se encarga de inicializar el banco y definir el dueño del contrato",
+					"details": "Establece los límites del banco, configura el oráculo de Chainlink y el token USDC      Hereda de Ownable de OpenZeppelin, estableciendo al deployer como propietario",
 					"params": {
-						"_bankCap": "es el monto máximo que puede tener el banco",
-						"_maxWithdrawAmount": "es el monto máximo que se puede retirar en una transacción"
+						"_bankCap": "Capacidad máxima en unidades base que puede almacenar cada usuario por token",
+						"_feed": "Dirección del Price Feed de Chainlink para ETH/USD",
+						"_maxWithdrawAmount": "Monto máximo en unidades base que se puede retirar en una sola transacción",
+						"_usdc": "Dirección del contrato del token USDC"
 					}
 				},
 				"contractBalanceInUSD()": {
-					"custom:newfeature": "",
+					"custom:newfeature": "Función añadida en V2 para transparencia del balance total",
+					"details": "Convierte el balance de ETH a USD usando Chainlink y suma el balance de USDC      No considera el balance individual de usuarios, sino el total del contrato",
 					"returns": {
-						"balance_": "the amount of ETH in the contract"
+						"balance_": "El monto total en USD (con decimales de USDC) que posee el contrato"
 					}
 				},
 				"createAccount(string,string)": {
-					"details": "al crear la cuenta se puede recibir un monto para guardar",
+					"details": "Inicializa dos estructuras Account en el mapeo s_vault:      1. Para ETH nativo (address(0))      2. Para USDC (address(i_usdc))      Ambas cuentas se crean con balance cero y los mismos datos personales",
 					"params": {
-						"_email": "dirección de mail del dueño de la cuenta",
-						"_name": "nombre del dueño de la cuenta"
+						"_email": "Correo electrónico del titular de la cuenta",
+						"_name": "Nombre completo del titular de la cuenta"
 					}
 				},
 				"depositEther()": {
-					"details": "esta función emite un evento ante un deposito correcto, sino revierte el esatod"
+					"details": "Incrementa el balance de ETH (address(0)) del usuario con msg.value      Valida que la cuenta exista y que no se exceda el límite i_bankCap      Emite un evento KipuBank_Deposit tras el depósito exitoso"
 				},
 				"depositUSDC(uint256)": {
-					"details": "after the transaction contract balance should not be bigger than the bank cap"
+					"details": "Incrementa el balance de USDC del usuario y transfiere tokens al contrato      Utiliza SafeERC20 para transferencia segura desde el usuario al contrato      El usuario debe haber aprobado previamente el contrato para gastar sus USDC      Valida que la cuenta exista y que no se exceda el límite i_bankCap      Emite un evento KipuBank_Deposit tras el depósito exitoso",
+					"params": {
+						"_usdcAmount": "Cantidad de USDC en unidades base a depositar"
+					}
 				},
 				"getAccountBalanceEther()": {
-					"details": "solo el dueño de la cuenta puede obtener el saldo de su cuenta",
+					"details": "Solo el titular de una cuenta existente puede consultar su propio saldo      Accede al balance desde el mapeo s_vault usando msg.sender y address(0) para ETH",
 					"returns": {
-						"_0": "uint256 el balance de la cuenta del llamador en wei"
+						"_0": "uint256 El balance de ETH de la cuenta del llamador en wei"
 					}
 				},
 				"getAccountBalanceUSDC()": {
-					"details": "solo el dueño de la cuenta puede obtener el saldo de su cuenta",
+					"details": "Solo el titular de una cuenta existente puede consultar su propio saldo      Accede al balance desde el mapeo s_vault usando msg.sender y address(i_usdc)",
 					"returns": {
-						"_0": "uint256 el balance de la cuenta del llamador en wei"
+						"_0": "uint256 El balance de USDC de la cuenta del llamador en unidades base"
 					}
 				},
 				"owner()": {
@@ -471,16 +535,51 @@
 					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
 				},
 				"withdrawEther(uint256)": {
-					"details": "en caso exitoso se emite un evento, en caso de error se revierte el estado",
+					"details": "Implementa el patrón Checks-Effects-Interactions para seguridad:      1. Verifica saldo y límites (modificadores)      2. Reduce el balance interno      3. Transfiere ETH al usuario      4. Emite evento si la transferencia es exitosa      Protegida contra reentrada con el modificador noRentrancy",
 					"params": {
-						"_amount": "cantidad de ether a retirar de la cuenta"
+						"_amount": "Cantidad de ETH en wei a retirar de la cuenta"
 					}
 				},
 				"withdrawUSDC(uint256)": {
-					"details": "en caso exitoso se emite un evento, en caso de error se revierte el estado",
+					"details": "Implementa el patrón Checks-Effects-Interactions para seguridad:      1. Verifica saldo y límites (modificadores)      2. Reduce el balance interno      3. Incrementa contador y emite evento      4. Transfiere USDC al usuario mediante SafeERC20      Protegida contra reentrada con el modificador noRentrancy",
 					"params": {
-						"_amount": "cantidad de USDC a retirar de la cuenta"
+						"_amount": "Cantidad de USDC en unidades base a retirar de la cuenta"
 					}
+				}
+			},
+			"stateVariables": {
+				"DECIMAL_FACTOR": {
+					"details": "10^20 utilizado para mantener precisión en la conversión ETH-USD      Compensa la diferencia de decimales entre ETH (18) y el feed de Chainlink (8)"
+				},
+				"ORACLE_HEARTBEAT": {
+					"details": "Valor de 3600 segundos (1 hora) para validar la frescura de datos de Chainlink      Si han pasado más segundos desde la última actualización, el precio se considera obsoleto"
+				},
+				"ZERO": {
+					"details": "Representa cero, utilizada para mejorar legibilidad y mantener buenas prácticas"
+				},
+				"i_bankCap": {
+					"details": "Límite inmutable del balance establecido en el constructor      Se verifica en los modificadores exceedBankCapEther y exceedBankCapUSDC"
+				},
+				"i_maxWithdrawAmount": {
+					"details": "Límite inmutable establecido en el constructor para controlar retiros individuales      Aplica tanto para ETH como para USDC"
+				},
+				"i_usdc": {
+					"details": "Almacena la dirección del contrato USDC, establecida en el constructor      Utilizada para transferencias seguras mediante SafeERC20"
+				},
+				"s_depositCounter": {
+					"details": "Se incrementa cada vez que se ejecuta exitosamente un depósito de ETH o USDC"
+				},
+				"s_feeds": {
+					"details": "Almacena la dirección del agregador de Chainlink configurada en el constructorDocumentación: https://docs.chain.link/data-feeds/price-feeds/addresses"
+				},
+				"s_locked": {
+					"details": "Variable booleana utilizada como semáforo de exclusión mutua en el modificador noRentrancy"
+				},
+				"s_vault": {
+					"details": "Primer nivel: dirección del usuario, Segundo nivel: dirección del token      address(0) representa ETH nativo, otras direcciones representan tokens ERC20"
+				},
+				"s_withdrawCounter": {
+					"details": "Se incrementa cada vez que se ejecuta exitosamente un retiro de ETH o USDC"
 				}
 			},
 			"title": "KipuBankV2",
@@ -490,112 +589,112 @@
 			"errors": {
 				"KipuBank_AccountAlreadyExists()": [
 					{
-						"notice": "error emitido cuando se intenta crear una cuenta duplicada"
+						"notice": "Error emitido cuando se intenta crear una cuenta que ya existe"
 					}
 				],
 				"KipuBank_AccountNotExists()": [
 					{
-						"notice": "error emitido cuando alguien no identificado intenta operar sobre una cuenta"
+						"notice": "Error emitido cuando se intenta operar con una cuenta inexistente"
 					}
 				],
 				"KipuBank_DifferentOwner()": [
 					{
-						"notice": "error emitido cuando alguien diferente al dueño intenta operar el banco"
+						"notice": "Error emitido cuando alguien diferente al propietario intenta ejecutar funciones restringidas"
 					}
 				],
 				"KipuBank_ExceedBankCap()": [
 					{
-						"notice": "error emitido cuando se intenta depositar más del límite total permitido en el banco"
+						"notice": "Error emitido cuando se intenta depositar más del límite permitido por usuario"
 					}
 				],
 				"KipuBank_ExceedWithdrawAmount()": [
 					{
-						"notice": "error emitido cuando alguien se intenta extraer más del límite de retiro"
+						"notice": "Error emitido cuando se intenta retirar más del límite permitido"
 					}
 				],
 				"KipuBank_InsufficientFunds()": [
 					{
-						"notice": "error emitido cuando no se tiene saldo suficiente en la cuenta"
+						"notice": "Error emitido cuando no hay saldo suficiente para realizar un retiro"
 					}
 				],
 				"KipuBank_NoReentrancy()": [
 					{
-						"notice": "error emitido cuando alguien intenta hacer un ataque de reentrada"
+						"notice": "Error emitido cuando se detecta un intento de ataque de reentrada"
 					}
 				],
 				"KipuBank_OracleCompromised()": [
 					{
-						"notice": "error emitted when the oracle return is wrong"
+						"notice": "Error emitido cuando el oráculo de Chainlink retorna datos inválidos"
 					}
 				],
 				"KipuBank_StalePrice()": [
 					{
-						"notice": "error emitted when the last oracle update is bigger than the heartbeat"
+						"notice": "Error emitido cuando los datos del oráculo están desactualizados"
 					}
 				],
 				"KipuBank_TransferError()": [
 					{
-						"notice": "error emitido cuando da un error al retirar dinero"
+						"notice": "Error emitido cuando falla la transferencia de ether en un retiro"
 					}
 				]
 			},
 			"events": {
 				"KipuBank_ChainlinkFeedUpdated(address)": {
-					"notice": "event emitted when the Chainlink Feed is updated"
+					"notice": "Evento emitido cuando se actualiza la dirección del Price Feed de Chainlink"
 				},
 				"KipuBank_Deposit(address,uint256)": {
-					"notice": "Evento emitido cuando se completa un depósito"
+					"notice": "Evento emitido cuando se completa un depósito exitosamente"
 				},
 				"KipuBank_Withdraw(address,uint256)": {
-					"notice": "Evento emitido cuando se completa un retiro"
+					"notice": "Evento emitido cuando se completa un retiro exitosamente"
 				}
 			},
 			"kind": "user",
 			"methods": {
 				"constructor": {
-					"notice": "esta función se llama cuando se crea el contrato"
+					"notice": "Constructor que inicializa el contrato bancario V2 con soporte multi-token"
 				},
 				"contractBalanceInUSD()": {
-					"notice": "external view function to return the contract's balance"
+					"notice": "Función de vista externa para retornar el balance total del contrato en USD"
 				},
 				"createAccount(string,string)": {
-					"notice": "función para crear una nueva cuenta dentro del banco"
+					"notice": "Función para crear una nueva cuenta bancaria multi-token"
 				},
 				"depositEther()": {
-					"notice": "función que permite depositar ether para una cuenta existente"
+					"notice": "Función externa payable para depositar ETH en la cuenta del llamador"
 				},
 				"depositUSDC(uint256)": {
-					"notice": "external function to receive native depositsEmit an event when deposits succeed."
+					"notice": "Función externa para depositar USDC en la cuenta del llamador"
 				},
 				"getAccountBalanceEther()": {
-					"notice": "función para obtener el balance de una cuenta"
+					"notice": "Función para obtener el balance de ETH de la cuenta del llamador"
 				},
 				"getAccountBalanceUSDC()": {
-					"notice": "función para obtener el balance de una cuenta"
+					"notice": "Función para obtener el balance de USDC de la cuenta del llamador"
 				},
 				"i_bankCap()": {
-					"notice": "variable inmutable para almacenar el monto máximo que puede almacenar el contrato"
+					"notice": "Capacidad máxima total que puede almacenar el banco por usuario y token"
 				},
 				"i_maxWithdrawAmount()": {
-					"notice": "variable inmutable para almacenar el monto máximo de cada retiro"
+					"notice": "Monto máximo permitido por transacción de retiro"
 				},
 				"s_depositCounter()": {
-					"notice": "contador de cantidad de depositos realizados"
+					"notice": "Contador del número total de depósitos realizados"
 				},
 				"s_feeds()": {
-					"notice": "variable to store Chainlink Feeds address"
+					"notice": "Interfaz para interactuar con el Price Feed de Chainlink ETH/USD"
 				},
 				"s_withdrawCounter()": {
-					"notice": "contador de cantidad de retiros realizados"
+					"notice": "Contador del número total de retiros realizados"
 				},
 				"withdrawEther(uint256)": {
-					"notice": "Función para retirar saldo de una cuenta USDC"
+					"notice": "Función externa para retirar ETH de la cuenta del llamador"
 				},
 				"withdrawUSDC(uint256)": {
-					"notice": "Función para retirar saldo de una cuenta USDC"
+					"notice": "Función externa para retirar USDC de la cuenta del llamador"
 				}
 			},
-			"notice": "TP3 de ETHKipu",
+			"notice": "Contrato de banco descentralizado multi-token con soporte para ETH y USDC",
 			"version": 1
 		}
 	},
@@ -688,11 +787,11 @@
 			]
 		},
 		"contracts/KipuBankV2.sol": {
-			"keccak256": "0xe755854dbd90143262adf4c75f13fdcad88d5a45ab7f3a94a8f86e589a8a4b43",
+			"keccak256": "0xb334ede177146a86c31b2df3fd71a10cbe30dee5f6bd7c4531c3e47eb69ed7bf",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://85249f3d74f6d1e7042d6c597288cc9dceb448a05ff68b6e55daeca31c7a78e1",
-				"dweb:/ipfs/QmdXsL3JitvXaxkMo2PKC918Kbmw2X5xnvkPeQRzzp9uYu"
+				"bzz-raw://a60bd9960325dc5cbc94e83c98abfcf1f61881afaf97a7081e7d1ef1d37963e8",
+				"dweb:/ipfs/QmZ9fSE2cZ6yvQPa5q1VdkpfMXrZsfWFLCY5qZ8sajxwXR"
 			]
 		}
 	},
