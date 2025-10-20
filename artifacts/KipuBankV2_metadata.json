@@ -13,18 +13,13 @@
 						"type": "uint256"
 					},
 					{
-						"internalType": "uint256",
-						"name": "_maxWithdrawAmount",
-						"type": "uint256"
-					},
-					{
 						"internalType": "address",
 						"name": "_feed",
 						"type": "address"
 					},
 					{
 						"internalType": "address",
-						"name": "_usdc",
+						"name": "_owner",
 						"type": "address"
 					}
 				],
@@ -32,38 +27,30 @@
 				"type": "constructor"
 			},
 			{
-				"inputs": [],
-				"name": "KipuBank_AccountAlreadyExists",
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "balance",
+						"type": "uint256"
+					}
+				],
+				"name": "KipuBank_AmountExceedBalance",
 				"type": "error"
 			},
 			{
-				"inputs": [],
-				"name": "KipuBank_AccountNotExists",
-				"type": "error"
-			},
-			{
-				"inputs": [],
-				"name": "KipuBank_DifferentOwner",
-				"type": "error"
-			},
-			{
-				"inputs": [],
-				"name": "KipuBank_ExceedBankCap",
-				"type": "error"
-			},
-			{
-				"inputs": [],
-				"name": "KipuBank_ExceedWithdrawAmount",
-				"type": "error"
-			},
-			{
-				"inputs": [],
-				"name": "KipuBank_InsufficientFunds",
-				"type": "error"
-			},
-			{
-				"inputs": [],
-				"name": "KipuBank_NoReentrancy",
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "depositCap",
+						"type": "uint256"
+					}
+				],
+				"name": "KipuBank_BankCapReached",
 				"type": "error"
 			},
 			{
@@ -77,8 +64,14 @@
 				"type": "error"
 			},
 			{
-				"inputs": [],
-				"name": "KipuBank_TransferError",
+				"inputs": [
+					{
+						"internalType": "bytes",
+						"name": "reason",
+						"type": "bytes"
+					}
+				],
+				"name": "KipuBank_TransferFailed",
 				"type": "error"
 			},
 			{
@@ -133,17 +126,17 @@
 					{
 						"indexed": false,
 						"internalType": "address",
-						"name": "origin",
+						"name": "user",
 						"type": "address"
 					},
 					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "valor",
+						"name": "amount",
 						"type": "uint256"
 					}
 				],
-				"name": "KipuBank_Deposit",
+				"name": "KipuBank_SuccessfullyDeposited",
 				"type": "event"
 			},
 			{
@@ -152,17 +145,17 @@
 					{
 						"indexed": false,
 						"internalType": "address",
-						"name": "destination",
+						"name": "user",
 						"type": "address"
 					},
 					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "valor",
+						"name": "amount",
 						"type": "uint256"
 					}
 				],
-				"name": "KipuBank_Withdraw",
+				"name": "KipuBank_SuccessfullyWithdrawn",
 				"type": "event"
 			},
 			{
@@ -198,24 +191,6 @@
 				"type": "function"
 			},
 			{
-				"inputs": [
-					{
-						"internalType": "string",
-						"name": "_email",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "_name",
-						"type": "string"
-					}
-				],
-				"name": "createAccount",
-				"outputs": [],
-				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
 				"inputs": [],
 				"name": "depositEther",
 				"outputs": [],
@@ -233,58 +208,6 @@
 				"name": "depositUSDC",
 				"outputs": [],
 				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "getAccountBalanceEther",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "getAccountBalanceUSDC",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "i_bankCap",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "i_maxWithdrawAmount",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -309,7 +232,7 @@
 			},
 			{
 				"inputs": [],
-				"name": "s_depositCounter",
+				"name": "s_depositsCounter",
 				"outputs": [
 					{
 						"internalType": "uint256",
@@ -334,8 +257,32 @@
 				"type": "function"
 			},
 			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "token",
+						"type": "address"
+					}
+				],
+				"name": "s_vault",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [],
-				"name": "s_withdrawCounter",
+				"name": "s_withdrawsCounter",
 				"outputs": [
 					{
 						"internalType": "uint256",
@@ -344,6 +291,19 @@
 					}
 				],
 				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_feed",
+						"type": "address"
+					}
+				],
+				"name": "setFeeds",
+				"outputs": [],
+				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
@@ -387,9 +347,9 @@
 			}
 		],
 		"devdoc": {
-			"author": "maugust",
-			"custom:contact": "https://github.com/maugust17",
-			"details": "No usar en producción",
+			"author": "Barba - 77 Innovation Labs",
+			"custom:contact": "anySocial/i3arba",
+			"details": "Do not use it in production",
 			"errors": {
 				"OwnableInvalidOwner(address)": [
 					{
@@ -407,59 +367,19 @@
 					}
 				]
 			},
-			"events": {
-				"KipuBank_Deposit(address,uint256)": {
-					"params": {
-						"origin": "Dirección que realizó el depósito",
-						"valor": "Cantidad depositada en wei"
-					}
-				},
-				"KipuBank_Withdraw(address,uint256)": {
-					"params": {
-						"destination": "Dirección que recibe el retiro",
-						"valor": "Cantidad retirada en wei"
-					}
-				}
-			},
 			"kind": "dev",
 			"methods": {
-				"constructor": {
-					"details": "esta función se encarga de inicializar el banco y definir el dueño del contrato",
-					"params": {
-						"_bankCap": "es el monto máximo que puede tener el banco",
-						"_maxWithdrawAmount": "es el monto máximo que se puede retirar en una transacción"
-					}
-				},
 				"contractBalanceInUSD()": {
 					"custom:newfeature": "",
 					"returns": {
 						"balance_": "the amount of ETH in the contract"
 					}
 				},
-				"createAccount(string,string)": {
-					"details": "al crear la cuenta se puede recibir un monto para guardar",
-					"params": {
-						"_email": "dirección de mail del dueño de la cuenta",
-						"_name": "nombre del dueño de la cuenta"
-					}
-				},
 				"depositEther()": {
-					"details": "esta función emite un evento ante un deposito correcto, sino revierte el esatod"
+					"details": "after the transaction contract balance should not be bigger than the bank cap"
 				},
 				"depositUSDC(uint256)": {
 					"details": "after the transaction contract balance should not be bigger than the bank cap"
-				},
-				"getAccountBalanceEther()": {
-					"details": "solo el dueño de la cuenta puede obtener el saldo de su cuenta",
-					"returns": {
-						"_0": "uint256 el balance de la cuenta del llamador en wei"
-					}
-				},
-				"getAccountBalanceUSDC()": {
-					"details": "solo el dueño de la cuenta puede obtener el saldo de su cuenta",
-					"returns": {
-						"_0": "uint256 el balance de la cuenta del llamador en wei"
-					}
 				},
 				"owner()": {
 					"details": "Returns the address of the current owner."
@@ -467,19 +387,27 @@
 				"renounceOwnership()": {
 					"details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
 				},
+				"setFeeds(address)": {
+					"custom:newfeature": "",
+					"details": "must only be called by the owner",
+					"params": {
+						"_feed": "the new Price Feed address"
+					}
+				},
 				"transferOwnership(address)": {
 					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
 				},
 				"withdrawEther(uint256)": {
-					"details": "en caso exitoso se emite un evento, en caso de error se revierte el estado",
+					"details": "User must not be able to withdraw more than depositedUser must not be able to withdraw more than the threshold per withdraw",
 					"params": {
-						"_amount": "cantidad de ether a retirar de la cuenta"
+						"_amount": "is the amount to be withdrawn"
 					}
 				},
 				"withdrawUSDC(uint256)": {
-					"details": "en caso exitoso se emite un evento, en caso de error se revierte el estado",
+					"custom:newfeature": "",
+					"details": "User must not be able to withdraw more than depositedUser must not be able to withdraw more than the threshold per withdraw",
 					"params": {
-						"_amount": "cantidad de USDC a retirar de la cuenta"
+						"_amount": "is the amount to be withdrawn"
 					}
 				}
 			},
@@ -488,39 +416,14 @@
 		},
 		"userdoc": {
 			"errors": {
-				"KipuBank_AccountAlreadyExists()": [
+				"KipuBank_AmountExceedBalance(uint256,uint256)": [
 					{
-						"notice": "error emitido cuando se intenta crear una cuenta duplicada"
+						"notice": "error emitted when the amount to be withdrawn is bigger than the user's balance"
 					}
 				],
-				"KipuBank_AccountNotExists()": [
+				"KipuBank_BankCapReached(uint256)": [
 					{
-						"notice": "error emitido cuando alguien no identificado intenta operar sobre una cuenta"
-					}
-				],
-				"KipuBank_DifferentOwner()": [
-					{
-						"notice": "error emitido cuando alguien diferente al dueño intenta operar el banco"
-					}
-				],
-				"KipuBank_ExceedBankCap()": [
-					{
-						"notice": "error emitido cuando se intenta depositar más del límite total permitido en el banco"
-					}
-				],
-				"KipuBank_ExceedWithdrawAmount()": [
-					{
-						"notice": "error emitido cuando alguien se intenta extraer más del límite de retiro"
-					}
-				],
-				"KipuBank_InsufficientFunds()": [
-					{
-						"notice": "error emitido cuando no se tiene saldo suficiente en la cuenta"
-					}
-				],
-				"KipuBank_NoReentrancy()": [
-					{
-						"notice": "error emitido cuando alguien intenta hacer un ataque de reentrada"
+						"notice": "error emitted when the amount to be deposited plus the contract balance exceeds the bankCap"
 					}
 				],
 				"KipuBank_OracleCompromised()": [
@@ -533,9 +436,9 @@
 						"notice": "error emitted when the last oracle update is bigger than the heartbeat"
 					}
 				],
-				"KipuBank_TransferError()": [
+				"KipuBank_TransferFailed(bytes)": [
 					{
-						"notice": "error emitido cuando da un error al retirar dinero"
+						"notice": "error emitted when the native transfer fails"
 					}
 				]
 			},
@@ -543,65 +446,53 @@
 				"KipuBank_ChainlinkFeedUpdated(address)": {
 					"notice": "event emitted when the Chainlink Feed is updated"
 				},
-				"KipuBank_Deposit(address,uint256)": {
-					"notice": "Evento emitido cuando se completa un depósito"
+				"KipuBank_SuccessfullyDeposited(address,uint256)": {
+					"notice": "event emitted when a deposit is successfully completed"
 				},
-				"KipuBank_Withdraw(address,uint256)": {
-					"notice": "Evento emitido cuando se completa un retiro"
+				"KipuBank_SuccessfullyWithdrawn(address,uint256)": {
+					"notice": "event emitted when a withdrawal is successfully completed"
 				}
 			},
 			"kind": "user",
 			"methods": {
-				"constructor": {
-					"notice": "esta función se llama cuando se crea el contrato"
-				},
 				"contractBalanceInUSD()": {
 					"notice": "external view function to return the contract's balance"
 				},
-				"createAccount(string,string)": {
-					"notice": "función para crear una nueva cuenta dentro del banco"
-				},
 				"depositEther()": {
-					"notice": "función que permite depositar ether para una cuenta existente"
+					"notice": "external function to receive native depositsEmit an event when deposits succeed."
 				},
 				"depositUSDC(uint256)": {
 					"notice": "external function to receive native depositsEmit an event when deposits succeed."
 				},
-				"getAccountBalanceEther()": {
-					"notice": "función para obtener el balance de una cuenta"
-				},
-				"getAccountBalanceUSDC()": {
-					"notice": "función para obtener el balance de una cuenta"
-				},
-				"i_bankCap()": {
-					"notice": "variable inmutable para almacenar el monto máximo que puede almacenar el contrato"
-				},
-				"i_maxWithdrawAmount()": {
-					"notice": "variable inmutable para almacenar el monto máximo de cada retiro"
-				},
-				"s_depositCounter()": {
-					"notice": "contador de cantidad de depositos realizados"
+				"s_depositsCounter()": {
+					"notice": "public variable to hold the number of deposits completed"
 				},
 				"s_feeds()": {
 					"notice": "variable to store Chainlink Feeds address"
 				},
-				"s_withdrawCounter()": {
-					"notice": "contador de cantidad de retiros realizados"
+				"s_vault(address,address)": {
+					"notice": "mapping to keep track of deposits"
+				},
+				"s_withdrawsCounter()": {
+					"notice": "public variable to hold the number of withdrawals completed"
+				},
+				"setFeeds(address)": {
+					"notice": "function to update the Chainlink Price Feed"
 				},
 				"withdrawEther(uint256)": {
-					"notice": "Función para retirar saldo de una cuenta USDC"
+					"notice": "external function to process withdrawals"
 				},
 				"withdrawUSDC(uint256)": {
-					"notice": "Función para retirar saldo de una cuenta USDC"
+					"notice": "external function to process withdrawals"
 				}
 			},
-			"notice": "TP3 de ETHKipu",
+			"notice": "This is an example contract used as a parameter for the third module of the Ethereum Developer Pack / Brazil",
 			"version": 1
 		}
 	},
 	"settings": {
 		"compilationTarget": {
-			"contracts/KipuBankV2.sol": "KipuBank"
+			"contracts/KipuBankTest.sol": "KipuBankV2"
 		},
 		"evmVersion": "prague",
 		"libraries": {},
@@ -687,12 +578,12 @@
 				"dweb:/ipfs/QmadRjHbkicwqwwh61raUEapaVEtaLMcYbQZWs9gUkgj3u"
 			]
 		},
-		"contracts/KipuBankV2.sol": {
-			"keccak256": "0xe755854dbd90143262adf4c75f13fdcad88d5a45ab7f3a94a8f86e589a8a4b43",
+		"contracts/KipuBankTest.sol": {
+			"keccak256": "0x7574d5fdb3fa252a793c14134da42fa811c703f6f145b357929f8be55a75e3a2",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://85249f3d74f6d1e7042d6c597288cc9dceb448a05ff68b6e55daeca31c7a78e1",
-				"dweb:/ipfs/QmdXsL3JitvXaxkMo2PKC918Kbmw2X5xnvkPeQRzzp9uYu"
+				"bzz-raw://71100de4cf3b9cbf031305b951932d67aceeaf6df4a4096e7a586ddd6712389a",
+				"dweb:/ipfs/Qmbn44NRMxDrorMBmD1CQ7E2JFwc4Ejy8yAnwtauWbxJrc"
 			]
 		}
 	},
