@@ -37,26 +37,11 @@ contract KipuBank is Ownable {
     ///////////////////////*/
 
     /**
-     * @notice Estructura que representa una cuenta bancaria
-     * @dev Almacena la información de cada usuario del banco por token
-     * @param balance Saldo actual de la cuenta en wei o unidades del token
-     * @param name Nombre del titular de la cuenta
-     * @param email Correo electrónico del titular
-     * @param exists Indicador booleano que determina si la cuenta ha sido creada
-     */
-    struct Account {
-        uint256 balance;
-        string name;
-        string email;
-        bool exists;
-    }
-
-    /**
      * @notice Mapeo anidado para almacenar cuentas bancarias por usuario y token
      * @dev Primer nivel: dirección del usuario, Segundo nivel: dirección del token
      *      address(0) representa ETH nativo, otras direcciones representan tokens ERC20
      */
-    mapping(address user => mapping(address token => Account)) private s_vault;
+    mapping(address user => mapping(address token => uint256 amount)) private s_vault;
 
     /**
      * @notice Cerrojo de seguridad para prevenir ataques de reentrada
@@ -168,13 +153,6 @@ contract KipuBank is Ownable {
      */
     error KipuBank_TransferError();
 
-
-    /**
-     * @notice Error emitido cuando se intenta operar con una cuenta inexistente
-     * @dev Se lanza en el modificador onlyAccountOwners si exists es false
-     */
-    error KipuBank_AccountNotExists();
-
     /**
      * @notice Error emitido cuando no hay saldo suficiente para realizar un retiro
      * @dev Se lanza en los modificadores canWithdrawEther o canWithdrawUSDC
@@ -249,7 +227,7 @@ contract KipuBank is Ownable {
      * @param _amount Monto en wei que se desea retirar
      */
     modifier canWithdrawEther(uint256 _amount) {
-        uint256 userBalance = s_vault[msg.sender][address(0)].balance;
+        uint256 userBalance = s_vault[msg.sender][address(0)];
         if (_amount > userBalance) revert KipuBank_InsufficientFunds();
         if (_amount > i_maxWithdrawAmount) revert KipuBank_ExceedWithdrawAmount();
         _;
@@ -263,7 +241,7 @@ contract KipuBank is Ownable {
      * @param _amount Monto en unidades base de USDC que se desea retirar
      */
     modifier canWithdrawUSDC(uint256 _amount) {
-        uint256 userBalance = s_vault[msg.sender][address(i_usdc)].balance;
+        uint256 userBalance = s_vault[msg.sender][address(i_usdc)];
         if (_amount > userBalance) revert KipuBank_InsufficientFunds();
         if (_amount > i_maxWithdrawAmount) revert KipuBank_ExceedWithdrawAmount();
         _;
@@ -387,7 +365,7 @@ contract KipuBank is Ownable {
      */
     function depositEther() external exceedBankCap(msg.value) payable {
         if(msg.value == 0)  revert KipuBank_NothingToDeposit();
-        s_vault[msg.sender][address(0)].balance += msg.value;
+        s_vault[msg.sender][address(0)] += msg.value;
         _depositEtherEvent();
     }
 
@@ -402,7 +380,7 @@ contract KipuBank is Ownable {
      */
     function depositUSDC(uint256 _usdcAmount) external exceedBankCap(_usdcAmount) {
         if(_usdcAmount == 0)  revert KipuBank_NothingToDeposit();
-        s_vault[msg.sender][address(i_usdc)].balance += _usdcAmount;
+        s_vault[msg.sender][address(i_usdc)] += _usdcAmount;
         _depositUSDCEvent(_usdcAmount);
         i_usdc.safeTransferFrom(msg.sender, address(this), _usdcAmount);
     }
@@ -420,7 +398,7 @@ contract KipuBank is Ownable {
      */
     function withdrawEther(uint256 _amount) external canWithdrawEther(_amount) noRentrancy {
         // Effects: Actualizar todos los estados primero
-        s_vault[msg.sender][address(0)].balance -= _amount;
+        s_vault[msg.sender][address(0)] -= _amount;
         s_withdrawCounter++;
         emit KipuBank_Withdraw(msg.sender, _amount);
 
@@ -442,7 +420,7 @@ contract KipuBank is Ownable {
      * @param _amount Cantidad de USDC en unidades base a retirar de la cuenta
      */
     function withdrawUSDC(uint256 _amount) external canWithdrawUSDC(_amount) noRentrancy {
-        s_vault[msg.sender][address(i_usdc)].balance -= _amount;
+        s_vault[msg.sender][address(i_usdc)] -= _amount;
         s_withdrawCounter++;
         emit KipuBank_Withdraw(msg.sender, _amount);
         i_usdc.safeTransfer(msg.sender, _amount);

@@ -33,11 +33,6 @@
 			},
 			{
 				"inputs": [],
-				"name": "KipuBank_AccountNotExists",
-				"type": "error"
-			},
-			{
-				"inputs": [],
 				"name": "KipuBank_DifferentOwner",
 				"type": "error"
 			},
@@ -360,11 +355,6 @@
 			"custom:contact": "https://github.com/maugust17",
 			"details": "No usar en producción - TP3 de ETHKipuUtiliza OpenZeppelin para seguridad y Chainlink para conversión de precios",
 			"errors": {
-				"KipuBank_AccountNotExists()": [
-					{
-						"details": "Se lanza en el modificador onlyAccountOwners si exists es false"
-					}
-				],
 				"KipuBank_DifferentOwner()": [
 					{
 						"details": "Se lanza cuando una dirección no autorizada intenta acceder a funciones de administrador      En esta versión, la verificación se maneja mediante el modificador onlyOwner de OpenZeppelin"
@@ -544,11 +534,6 @@
 		},
 		"userdoc": {
 			"errors": {
-				"KipuBank_AccountNotExists()": [
-					{
-						"notice": "Error emitido cuando se intenta operar con una cuenta inexistente"
-					}
-				],
 				"KipuBank_DifferentOwner()": [
 					{
 						"notice": "Error emitido cuando alguien diferente al propietario intenta ejecutar funciones restringidas"
@@ -738,11 +723,11 @@
 			]
 		},
 		"contracts/KipuBankV2.sol": {
-			"keccak256": "0x124ed060ab40c95021165390e04ccee58f26e0a457129de9e95944e130e99104",
+			"keccak256": "0x05680b6810913ee5c21aa65c32e959cdc97795459ddaa4acf4e6a3adf27b7757",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://8b7424e09290bb53638123fe42b4c32c4d1914b6425ca6bc6f84a367a097d039",
-				"dweb:/ipfs/QmaVQrkQHrDwfvA4L2Hw7bpUqpGzCiMsTeEeYKCpzvHytB"
+				"bzz-raw://0c805fb0deb32bc87912ab55a94b05101944d4edea8136c99515290ec56b8876",
+				"dweb:/ipfs/QmZTJ4uH78JadtkGWkvuKuNrn4RykfAfEzYrbsr7yNzn3F"
 			]
 		}
 	},
