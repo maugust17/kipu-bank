@@ -168,11 +168,6 @@ contract KipuBank is Ownable {
      */
     error KipuBank_TransferError();
 
-    /**
-     * @notice Error emitido cuando se intenta crear una cuenta que ya existe
-     * @dev Se lanza en el modificador onlyNotExistsAccounts si exists es true
-     */
-    //error KipuBank_AccountAlreadyExists();
 
     /**
      * @notice Error emitido cuando se intenta operar con una cuenta inexistente
@@ -244,26 +239,7 @@ contract KipuBank is Ownable {
         s_locked = false;
     }
 
-    /**
-     * @notice Modificador que permite acceso solo a titulares de cuentas existentes
-     * @dev Verifica que el campo exists de la cuenta del msg.sender sea true
-     *      Utiliza address(0) como clave para verificar la existencia de la cuenta
-     */
-    // modifier onlyAccountOwners() {
-    //     if (!s_vault[msg.sender][address(0)].exists) revert KipuBank_AccountNotExists();
-    //     _;
-    // }
 
-    /**
-     * @notice Modificador que permite la ejecución solo si la cuenta no existe
-     * @dev Verifica que el campo exists de la cuenta del msg.sender sea false
-     *      Utilizado para prevenir la duplicación de cuentas
-     *      Utiliza address(0) como clave de verificación
-     */
-    /*modifier onlyNotExistsAccounts() {
-        if (s_vault[msg.sender][address(0)].exists) revert KipuBank_AccountAlreadyExists();
-        _;
-    }*/
 
     /**
      * @notice Modificador que valida si una cuenta tiene saldo suficiente de ETH para retirar
@@ -372,25 +348,7 @@ contract KipuBank is Ownable {
         ethUSDPrice_ = uint256(ethUSDPrice);
     }
 
-    /**
-     * @notice Función para obtener el balance de ETH de la cuenta del llamador
-     * @dev Solo el titular de una cuenta existente puede consultar su propio saldo
-     *      Accede al balance desde el mapeo s_vault usando msg.sender y address(0) para ETH
-     * @return uint256 El balance de ETH de la cuenta del llamador en wei
-     */
-    // function getAccountBalanceEther() public view onlyAccountOwners returns (uint256) {
-    //     return s_vault[msg.sender][address(0)].balance;
-    // }
 
-    /**
-     * @notice Función para obtener el balance de USDC de la cuenta del llamador
-     * @dev Solo el titular de una cuenta existente puede consultar su propio saldo
-     *      Accede al balance desde el mapeo s_vault usando msg.sender y address(i_usdc)
-     * @return uint256 El balance de USDC de la cuenta del llamador en unidades base
-     */
-    // function getAccountBalanceUSDC() public view onlyAccountOwners returns (uint256) {
-    //     return s_vault[msg.sender][address(i_usdc)].balance;
-    // }
 
     /**
      * @notice Función interna privada que registra y emite eventos de depósito
@@ -412,20 +370,6 @@ contract KipuBank is Ownable {
         emit KipuBank_Deposit(msg.sender, _usdcAmount);
     }
 
-    /**
-     * @notice Función para crear una nueva cuenta bancaria multi-token
-     * @dev Inicializa dos estructuras Account en el mapeo s_vault:
-     *      1. Para ETH nativo (address(0))
-     *      2. Para USDC (address(i_usdc))
-     *      Ambas cuentas se crean con balance cero y los mismos datos personales
-     * @param _email Correo electrónico del titular de la cuenta
-     * @param _name Nombre completo del titular de la cuenta
-     */
-    /*function createAccount(string memory _email, string memory _name) public onlyNotExistsAccounts {
-        s_vault[msg.sender][address(0)] = Account({exists: true, balance: 0, email: _email, name: _name});
-
-        s_vault[msg.sender][address(i_usdc)] = Account({exists: true, balance: 0, email: _email, name: _name});
-    }*/
 
     /**
      * @notice Función externa payable para depositar ETH en la cuenta del llamador
@@ -497,10 +441,10 @@ contract KipuBank is Ownable {
         i_usdc.safeTransfer(msg.sender, _amount);
     }
 
-      /**
-     * @notice function to update the Chainlink Price Feed
-     * @param _feed the new Price Feed address
-     * @dev must only be called by the owner
+    /**
+     * @notice Función para actualizar el Price Feed de Chainlink
+     * @param _feed La nueva dirección del Price Feed
+     * @dev Solo puede ser llamada por el propietario
      * @custom:newfeature
      */
     function setFeeds(address _feed) external onlyOwner {
