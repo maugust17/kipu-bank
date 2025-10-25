@@ -331,23 +331,30 @@ contract KipuBank is Ownable {
 
     /**
      * @notice Función interna para consultar el precio de ETH en USD desde Chainlink
-     * @dev Implementación simplificada que verifica:
-     *      1. El precio no sea cero (oráculo comprometido)
+     * @dev Implementa todas las validaciones recomendadas por Chainlink:
+     *      1. El precio sea positivo (oráculo comprometido)
      *      2. La actualización no sea obsoleta (exceda ORACLE_HEARTBEAT)
+     *      3. La consistencia de rondas (answeredInRound >= roundId)
      *      Convierte el int256 retornado por Chainlink a uint256
      * @return ethUSDPrice_ El precio de ETH en USD con 8 decimales (formato Chainlink)
      * @custom:newfeature Función añadida en V2 para integración con Chainlink
-     * @custom:security Esta es una implementación simplificada, no cumple totalmente con mejores prácticas
+     * @custom:security Implementa las mejores prácticas de validación de Chainlink
      */
     function chainlinkFeed() internal view returns (uint256 ethUSDPrice_) {
-        (, int256 ethUSDPrice,, uint256 updatedAt,) = s_feeds.latestRoundData();
+        (
+            uint80 roundId,
+            int256 ethUSDPrice,
+            ,
+            uint256 updatedAt,
+            uint80 answeredInRound
+        ) = s_feeds.latestRoundData();
 
-        if (ethUSDPrice == 0) revert KipuBank_OracleCompromised();
+        if (ethUSDPrice <= 0) revert KipuBank_OracleCompromised();
         if (block.timestamp - updatedAt > ORACLE_HEARTBEAT) revert KipuBank_StalePrice();
+        if (answeredInRound < roundId) revert KipuBank_StalePrice();
 
         ethUSDPrice_ = uint256(ethUSDPrice);
     }
-
 
 
     /**
