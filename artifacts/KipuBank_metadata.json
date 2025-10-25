@@ -483,9 +483,9 @@
 				},
 				"setFeeds(address)": {
 					"custom:newfeature": "",
-					"details": "must only be called by the owner",
+					"details": "Solo puede ser llamada por el propietario",
 					"params": {
-						"_feed": "the new Price Feed address"
+						"_feed": "La nueva dirección del Price Feed"
 					}
 				},
 				"transferOwnership(address)": {
@@ -636,7 +636,7 @@
 					"notice": "Contador del número total de retiros realizados"
 				},
 				"setFeeds(address)": {
-					"notice": "function to update the Chainlink Price Feed"
+					"notice": "Función para actualizar el Price Feed de Chainlink"
 				},
 				"withdrawEther(uint256)": {
 					"notice": "Función externa para retirar ETH de la cuenta del llamador"
@@ -738,11 +738,11 @@
 			]
 		},
 		"contracts/KipuBankV2.sol": {
-			"keccak256": "0x4b6e98676b5325e43159034ec8d58fb9c92e39d269cec5cfac886b819d846212",
+			"keccak256": "0x124ed060ab40c95021165390e04ccee58f26e0a457129de9e95944e130e99104",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://6e01be52ef13338bc12adfa41cb5b05019a940cc0c44ce11527aba8540c5d443",
-				"dweb:/ipfs/QmdjWBVy5d1AVr4sG3ZTW2VRaqmkcECNUk7EW6NpF6Kd6i"
+				"bzz-raw://8b7424e09290bb53638123fe42b4c32c4d1914b6425ca6bc6f84a367a097d039",
+				"dweb:/ipfs/QmaVQrkQHrDwfvA4L2Hw7bpUqpGzCiMsTeEeYKCpzvHytB"
 			]
 		}
 	},
