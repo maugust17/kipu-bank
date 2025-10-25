@@ -74,7 +74,7 @@ contract KipuBank is Ownable {
     /**
      * @notice Capacidad máxima total que puede almacenar el banco por usuario y token
      * @dev Límite inmutable del balance establecido en el constructor
-     *      Se verifica en los modificadores exceedBankCapEther y exceedBankCapUSDC
+     *      Se verifica en los modificadores exceedBankCapp y exceedBankCappUSDC
      */
     uint256 public immutable i_bankCap;
 
@@ -172,7 +172,7 @@ contract KipuBank is Ownable {
      * @notice Error emitido cuando se intenta crear una cuenta que ya existe
      * @dev Se lanza en el modificador onlyNotExistsAccounts si exists es true
      */
-    error KipuBank_AccountAlreadyExists();
+    //error KipuBank_AccountAlreadyExists();
 
     /**
      * @notice Error emitido cuando se intenta operar con una cuenta inexistente
@@ -196,7 +196,7 @@ contract KipuBank is Ownable {
 
     /**
      * @notice Error emitido cuando se intenta depositar más del límite permitido por usuario
-     * @dev Se lanza en los modificadores exceedBankCapEther o exceedBankCapUSDC
+     * @dev Se lanza en los modificadores exceedBankCapp
      *      si el balance resultante supera i_bankCap
      */
     error KipuBank_ExceedBankCap();
@@ -221,6 +221,13 @@ contract KipuBank is Ownable {
      */
     error KipuBank_StalePrice();
 
+    /**
+     * @notice Error emitido cuando se intenta hacer un deposito sin monto
+     * @dev Se lanza en deposit() cuando el monto enviado a depositar es 0
+     *      Previene el incremento del contador de depositos si- no se envía un monto
+     */
+    error KipuBank_NothingToDeposit();
+
     /*///////////////////////
            Modifiers
     ///////////////////////*/
@@ -242,10 +249,10 @@ contract KipuBank is Ownable {
      * @dev Verifica que el campo exists de la cuenta del msg.sender sea true
      *      Utiliza address(0) como clave para verificar la existencia de la cuenta
      */
-    modifier onlyAccountOwners() {
-        if (!s_vault[msg.sender][address(0)].exists) revert KipuBank_AccountNotExists();
-        _;
-    }
+    // modifier onlyAccountOwners() {
+    //     if (!s_vault[msg.sender][address(0)].exists) revert KipuBank_AccountNotExists();
+    //     _;
+    // }
 
     /**
      * @notice Modificador que permite la ejecución solo si la cuenta no existe
@@ -253,10 +260,10 @@ contract KipuBank is Ownable {
      *      Utilizado para prevenir la duplicación de cuentas
      *      Utiliza address(0) como clave de verificación
      */
-    modifier onlyNotExistsAccounts() {
+    /*modifier onlyNotExistsAccounts() {
         if (s_vault[msg.sender][address(0)].exists) revert KipuBank_AccountAlreadyExists();
         _;
-    }
+    }*/
 
     /**
      * @notice Modificador que valida si una cuenta tiene saldo suficiente de ETH para retirar
@@ -290,21 +297,10 @@ contract KipuBank is Ownable {
      * @notice Modificador que controla que no se exceda la capacidad máxima de ETH por usuario
      * @dev Verifica que el balance de ETH del usuario no supere i_bankCap después del depósito
      *      Se ejecuta antes de la función para validar el estado resultante
-     * @param _ethAmount Monto de ETH en wei que se va a depositar (usado para depósitos de valor cero)
+     *      Valida automáticamente msg.value para funciones payable
      */
-    modifier exceedBankCapEther(uint256 _ethAmount) {
-        if (s_vault[msg.sender][address(0)].balance + _ethAmount > i_bankCap) revert KipuBank_ExceedBankCap();
-        _;
-    }
-
-    /**
-     * @notice Modificador que controla que no se exceda la capacidad máxima de USDC por usuario
-     * @dev Verifica que el balance de USDC del usuario no supere i_bankCap después del depósito
-     *      Se ejecuta antes de la función para validar el estado resultante
-     * @param _usdcAmount Monto de USDC en unidades base que se va a depositar
-     */
-    modifier exceedBankCapUSDC(uint256 _usdcAmount) {
-        if (s_vault[msg.sender][address(i_usdc)].balance + _usdcAmount > i_bankCap) {
+    modifier exceedBankCap(uint256 _amount) {
+        if (contractBalanceInUSD() + _amount > i_bankCap) {
             revert KipuBank_ExceedBankCap();
         }
         _;
@@ -382,9 +378,9 @@ contract KipuBank is Ownable {
      *      Accede al balance desde el mapeo s_vault usando msg.sender y address(0) para ETH
      * @return uint256 El balance de ETH de la cuenta del llamador en wei
      */
-    function getAccountBalanceEther() public view onlyAccountOwners returns (uint256) {
-        return s_vault[msg.sender][address(0)].balance;
-    }
+    // function getAccountBalanceEther() public view onlyAccountOwners returns (uint256) {
+    //     return s_vault[msg.sender][address(0)].balance;
+    // }
 
     /**
      * @notice Función para obtener el balance de USDC de la cuenta del llamador
@@ -392,18 +388,28 @@ contract KipuBank is Ownable {
      *      Accede al balance desde el mapeo s_vault usando msg.sender y address(i_usdc)
      * @return uint256 El balance de USDC de la cuenta del llamador en unidades base
      */
-    function getAccountBalanceUSDC() public view onlyAccountOwners returns (uint256) {
-        return s_vault[msg.sender][address(i_usdc)].balance;
-    }
+    // function getAccountBalanceUSDC() public view onlyAccountOwners returns (uint256) {
+    //     return s_vault[msg.sender][address(i_usdc)].balance;
+    // }
 
     /**
      * @notice Función interna privada que registra y emite eventos de depósito
      * @dev Incrementa el contador de depósitos y emite el evento KipuBank_Deposit
      *      Utiliza msg.value como cantidad depositada (solo válido para depósitos de ETH)
      */
-    function _depositEvent() private {
+    function _depositEtherEvent() private {
         s_depositCounter++;
         emit KipuBank_Deposit(msg.sender, msg.value);
+    }
+
+    /**
+     * @notice Función interna privada que registra y emite eventos de depósito
+     * @dev Incrementa el contador de depósitos y emite el evento KipuBank_Deposit
+     *      Utiliza _usdcAmount como cantidad depositada (solo válido para depósitos de token)
+     */
+    function _depositUSDCEvent(uint256 _usdcAmount) private {
+        s_depositCounter++;
+        emit KipuBank_Deposit(msg.sender, _usdcAmount);
     }
 
     /**
@@ -415,21 +421,23 @@ contract KipuBank is Ownable {
      * @param _email Correo electrónico del titular de la cuenta
      * @param _name Nombre completo del titular de la cuenta
      */
-    function createAccount(string memory _email, string memory _name) public onlyNotExistsAccounts {
+    /*function createAccount(string memory _email, string memory _name) public onlyNotExistsAccounts {
         s_vault[msg.sender][address(0)] = Account({exists: true, balance: 0, email: _email, name: _name});
 
         s_vault[msg.sender][address(i_usdc)] = Account({exists: true, balance: 0, email: _email, name: _name});
-    }
+    }*/
 
     /**
      * @notice Función externa payable para depositar ETH en la cuenta del llamador
      * @dev Incrementa el balance de ETH (address(0)) del usuario con msg.value
-     *      Valida que la cuenta exista y que no se exceda el límite i_bankCap
+     *      Valida que la cuenta exista con onlyAccountOwners
+     *      Valida que el balance resultante no exceda i_bankCap con exceedBankCapp
      *      Emite un evento KipuBank_Deposit tras el depósito exitoso
      */
-    function depositEther() external exceedBankCapEther(ZERO) onlyAccountOwners payable {
+    function depositEther() external exceedBankCap(msg.value) payable {
+        if(msg.value == 0)  revert KipuBank_NothingToDeposit();
         s_vault[msg.sender][address(0)].balance += msg.value;
-        _depositEvent();
+        _depositEtherEvent();
     }
 
     /**
@@ -441,9 +449,10 @@ contract KipuBank is Ownable {
      *      Emite un evento KipuBank_Deposit tras el depósito exitoso
      * @param _usdcAmount Cantidad de USDC en unidades base a depositar
      */
-    function depositUSDC(uint256 _usdcAmount) external exceedBankCapUSDC(_usdcAmount) onlyAccountOwners {
+    function depositUSDC(uint256 _usdcAmount) external exceedBankCap(_usdcAmount) {
+        if(_usdcAmount == 0)  revert KipuBank_NothingToDeposit();
         s_vault[msg.sender][address(i_usdc)].balance += _usdcAmount;
-        _depositEvent();
+        _depositUSDCEvent(_usdcAmount);
         i_usdc.safeTransferFrom(msg.sender, address(this), _usdcAmount);
     }
 
@@ -452,18 +461,21 @@ contract KipuBank is Ownable {
      * @dev Implementa el patrón Checks-Effects-Interactions para seguridad:
      *      1. Verifica saldo y límites (modificadores)
      *      2. Reduce el balance interno
-     *      3. Transfiere ETH al usuario
-     *      4. Emite evento si la transferencia es exitosa
+     *      3. Incrementa el contador de retiros
+     *      4. Emite evento de retiro
+     *      5. Transfiere ETH al usuario
      *      Protegida contra reentrada con el modificador noRentrancy
      * @param _amount Cantidad de ETH en wei a retirar de la cuenta
      */
-    function withdrawEther(uint256 _amount) external onlyAccountOwners canWithdrawEther(_amount) noRentrancy {
+    function withdrawEther(uint256 _amount) external canWithdrawEther(_amount) noRentrancy {
+        // Effects: Actualizar todos los estados primero
         s_vault[msg.sender][address(0)].balance -= _amount;
+        s_withdrawCounter++;
+        emit KipuBank_Withdraw(msg.sender, _amount);
+
+        // Interactions: Llamada externa al final
         (bool sent,) = msg.sender.call{value: _amount}("");
-        if (sent) {
-            s_withdrawCounter++;
-            emit KipuBank_Withdraw(msg.sender, _amount);
-        } else {
+        if (!sent) {
             revert KipuBank_TransferError();
         }
     }
@@ -478,10 +490,22 @@ contract KipuBank is Ownable {
      *      Protegida contra reentrada con el modificador noRentrancy
      * @param _amount Cantidad de USDC en unidades base a retirar de la cuenta
      */
-    function withdrawUSDC(uint256 _amount) external onlyAccountOwners canWithdrawUSDC(_amount) noRentrancy {
+    function withdrawUSDC(uint256 _amount) external canWithdrawUSDC(_amount) noRentrancy {
         s_vault[msg.sender][address(i_usdc)].balance -= _amount;
         s_withdrawCounter++;
         emit KipuBank_Withdraw(msg.sender, _amount);
         i_usdc.safeTransfer(msg.sender, _amount);
+    }
+
+      /**
+     * @notice function to update the Chainlink Price Feed
+     * @param _feed the new Price Feed address
+     * @dev must only be called by the owner
+     * @custom:newfeature
+     */
+    function setFeeds(address _feed) external onlyOwner {
+        s_feeds = AggregatorV3Interface(_feed);
+
+        emit KipuBank_ChainlinkFeedUpdated(_feed);
     }
 }

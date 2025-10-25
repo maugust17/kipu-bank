@@ -33,11 +33,6 @@
 			},
 			{
 				"inputs": [],
-				"name": "KipuBank_AccountAlreadyExists",
-				"type": "error"
-			},
-			{
-				"inputs": [],
 				"name": "KipuBank_AccountNotExists",
 				"type": "error"
 			},
@@ -64,6 +59,11 @@
 			{
 				"inputs": [],
 				"name": "KipuBank_NoReentrancy",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "KipuBank_NothingToDeposit",
 				"type": "error"
 			},
 			{
@@ -198,24 +198,6 @@
 				"type": "function"
 			},
 			{
-				"inputs": [
-					{
-						"internalType": "string",
-						"name": "_email",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "_name",
-						"type": "string"
-					}
-				],
-				"name": "createAccount",
-				"outputs": [],
-				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
 				"inputs": [],
 				"name": "depositEther",
 				"outputs": [],
@@ -233,32 +215,6 @@
 				"name": "depositUSDC",
 				"outputs": [],
 				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "getAccountBalanceEther",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "getAccountBalanceUSDC",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -350,6 +306,19 @@
 				"inputs": [
 					{
 						"internalType": "address",
+						"name": "_feed",
+						"type": "address"
+					}
+				],
+				"name": "setFeeds",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
 						"name": "newOwner",
 						"type": "address"
 					}
@@ -391,11 +360,6 @@
 			"custom:contact": "https://github.com/maugust17",
 			"details": "No usar en producción - TP3 de ETHKipuUtiliza OpenZeppelin para seguridad y Chainlink para conversión de precios",
 			"errors": {
-				"KipuBank_AccountAlreadyExists()": [
-					{
-						"details": "Se lanza en el modificador onlyNotExistsAccounts si exists es true"
-					}
-				],
 				"KipuBank_AccountNotExists()": [
 					{
 						"details": "Se lanza en el modificador onlyAccountOwners si exists es false"
@@ -408,7 +372,7 @@
 				],
 				"KipuBank_ExceedBankCap()": [
 					{
-						"details": "Se lanza en los modificadores exceedBankCapEther o exceedBankCapUSDC      si el balance resultante supera i_bankCap"
+						"details": "Se lanza en los modificadores exceedBankCapp      si el balance resultante supera i_bankCap"
 					}
 				],
 				"KipuBank_ExceedWithdrawAmount()": [
@@ -424,6 +388,11 @@
 				"KipuBank_NoReentrancy()": [
 					{
 						"details": "Se lanza en el modificador noRentrancy si s_locked ya está en true"
+					}
+				],
+				"KipuBank_NothingToDeposit()": [
+					{
+						"details": "Se lanza en deposit() cuando el monto enviado a depositar es 0      Previene el incremento del contador de depositos si- no se envía un monto"
 					}
 				],
 				"KipuBank_OracleCompromised()": [
@@ -497,32 +466,13 @@
 						"balance_": "El monto total en USD (con decimales de USDC) que posee el contrato"
 					}
 				},
-				"createAccount(string,string)": {
-					"details": "Inicializa dos estructuras Account en el mapeo s_vault:      1. Para ETH nativo (address(0))      2. Para USDC (address(i_usdc))      Ambas cuentas se crean con balance cero y los mismos datos personales",
-					"params": {
-						"_email": "Correo electrónico del titular de la cuenta",
-						"_name": "Nombre completo del titular de la cuenta"
-					}
-				},
 				"depositEther()": {
-					"details": "Incrementa el balance de ETH (address(0)) del usuario con msg.value      Valida que la cuenta exista y que no se exceda el límite i_bankCap      Emite un evento KipuBank_Deposit tras el depósito exitoso"
+					"details": "Incrementa el balance de ETH (address(0)) del usuario con msg.value      Valida que la cuenta exista con onlyAccountOwners      Valida que el balance resultante no exceda i_bankCap con exceedBankCapp      Emite un evento KipuBank_Deposit tras el depósito exitoso"
 				},
 				"depositUSDC(uint256)": {
 					"details": "Incrementa el balance de USDC del usuario y transfiere tokens al contrato      Utiliza SafeERC20 para transferencia segura desde el usuario al contrato      El usuario debe haber aprobado previamente el contrato para gastar sus USDC      Valida que la cuenta exista y que no se exceda el límite i_bankCap      Emite un evento KipuBank_Deposit tras el depósito exitoso",
 					"params": {
 						"_usdcAmount": "Cantidad de USDC en unidades base a depositar"
-					}
-				},
-				"getAccountBalanceEther()": {
-					"details": "Solo el titular de una cuenta existente puede consultar su propio saldo      Accede al balance desde el mapeo s_vault usando msg.sender y address(0) para ETH",
-					"returns": {
-						"_0": "uint256 El balance de ETH de la cuenta del llamador en wei"
-					}
-				},
-				"getAccountBalanceUSDC()": {
-					"details": "Solo el titular de una cuenta existente puede consultar su propio saldo      Accede al balance desde el mapeo s_vault usando msg.sender y address(i_usdc)",
-					"returns": {
-						"_0": "uint256 El balance de USDC de la cuenta del llamador en unidades base"
 					}
 				},
 				"owner()": {
@@ -531,11 +481,18 @@
 				"renounceOwnership()": {
 					"details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
 				},
+				"setFeeds(address)": {
+					"custom:newfeature": "",
+					"details": "must only be called by the owner",
+					"params": {
+						"_feed": "the new Price Feed address"
+					}
+				},
 				"transferOwnership(address)": {
 					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
 				},
 				"withdrawEther(uint256)": {
-					"details": "Implementa el patrón Checks-Effects-Interactions para seguridad:      1. Verifica saldo y límites (modificadores)      2. Reduce el balance interno      3. Transfiere ETH al usuario      4. Emite evento si la transferencia es exitosa      Protegida contra reentrada con el modificador noRentrancy",
+					"details": "Implementa el patrón Checks-Effects-Interactions para seguridad:      1. Verifica saldo y límites (modificadores)      2. Reduce el balance interno      3. Incrementa el contador de retiros      4. Emite evento de retiro      5. Transfiere ETH al usuario      Protegida contra reentrada con el modificador noRentrancy",
 					"params": {
 						"_amount": "Cantidad de ETH en wei a retirar de la cuenta"
 					}
@@ -558,7 +515,7 @@
 					"details": "Representa cero, utilizada para mejorar legibilidad y mantener buenas prácticas"
 				},
 				"i_bankCap": {
-					"details": "Límite inmutable del balance establecido en el constructor      Se verifica en los modificadores exceedBankCapEther y exceedBankCapUSDC"
+					"details": "Límite inmutable del balance establecido en el constructor      Se verifica en los modificadores exceedBankCapp y exceedBankCappUSDC"
 				},
 				"i_maxWithdrawAmount": {
 					"details": "Límite inmutable establecido en el constructor para controlar retiros individuales      Aplica tanto para ETH como para USDC"
@@ -587,11 +544,6 @@
 		},
 		"userdoc": {
 			"errors": {
-				"KipuBank_AccountAlreadyExists()": [
-					{
-						"notice": "Error emitido cuando se intenta crear una cuenta que ya existe"
-					}
-				],
 				"KipuBank_AccountNotExists()": [
 					{
 						"notice": "Error emitido cuando se intenta operar con una cuenta inexistente"
@@ -620,6 +572,11 @@
 				"KipuBank_NoReentrancy()": [
 					{
 						"notice": "Error emitido cuando se detecta un intento de ataque de reentrada"
+					}
+				],
+				"KipuBank_NothingToDeposit()": [
+					{
+						"notice": "Error emitido cuando se intenta hacer un deposito sin monto"
 					}
 				],
 				"KipuBank_OracleCompromised()": [
@@ -657,20 +614,11 @@
 				"contractBalanceInUSD()": {
 					"notice": "Función de vista externa para retornar el balance total del contrato en USD"
 				},
-				"createAccount(string,string)": {
-					"notice": "Función para crear una nueva cuenta bancaria multi-token"
-				},
 				"depositEther()": {
 					"notice": "Función externa payable para depositar ETH en la cuenta del llamador"
 				},
 				"depositUSDC(uint256)": {
 					"notice": "Función externa para depositar USDC en la cuenta del llamador"
-				},
-				"getAccountBalanceEther()": {
-					"notice": "Función para obtener el balance de ETH de la cuenta del llamador"
-				},
-				"getAccountBalanceUSDC()": {
-					"notice": "Función para obtener el balance de USDC de la cuenta del llamador"
 				},
 				"i_bankCap()": {
 					"notice": "Capacidad máxima total que puede almacenar el banco por usuario y token"
@@ -686,6 +634,9 @@
 				},
 				"s_withdrawCounter()": {
 					"notice": "Contador del número total de retiros realizados"
+				},
+				"setFeeds(address)": {
+					"notice": "function to update the Chainlink Price Feed"
 				},
 				"withdrawEther(uint256)": {
 					"notice": "Función externa para retirar ETH de la cuenta del llamador"
@@ -787,11 +738,11 @@
 			]
 		},
 		"contracts/KipuBankV2.sol": {
-			"keccak256": "0xb334ede177146a86c31b2df3fd71a10cbe30dee5f6bd7c4531c3e47eb69ed7bf",
+			"keccak256": "0x4b6e98676b5325e43159034ec8d58fb9c92e39d269cec5cfac886b819d846212",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://a60bd9960325dc5cbc94e83c98abfcf1f61881afaf97a7081e7d1ef1d37963e8",
-				"dweb:/ipfs/QmZ9fSE2cZ6yvQPa5q1VdkpfMXrZsfWFLCY5qZ8sajxwXR"
+				"bzz-raw://6e01be52ef13338bc12adfa41cb5b05019a940cc0c44ce11527aba8540c5d443",
+				"dweb:/ipfs/QmdjWBVy5d1AVr4sG3ZTW2VRaqmkcECNUk7EW6NpF6Kd6i"
 			]
 		}
 	},
